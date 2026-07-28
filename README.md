@@ -45,8 +45,8 @@ See `MIGRATION_NOTES.md`.
 
 ## Live demo (Render)
 
-**Web:** https://akp-web-dennis.onrender.com  
-**API:** https://akp-api-dennis.onrender.com
+**Web:** https://akp-fastapi-frontend.onrender.com  
+**API:** https://akp-fastapi-backend.onrender.com
 
 Hosted on Render’s free tier (web + API sleep after ~15 minutes idle; first request may take a minute to wake). The live demo runs the Node reference path (`apps/api-node` / `apps/web`) while the Python FastAPI cutover continues.
 
@@ -56,8 +56,8 @@ For Google sign-in on this host, set these in Google Cloud Console (OAuth Web cl
 
 | Setting | Value |
 |---------|-------|
-| Authorized JavaScript origins | `https://akp-web-dennis.onrender.com` |
-| Authorized redirect URIs | `https://akp-web-dennis.onrender.com/api/auth/google/callback` |
+| Authorized JavaScript origins | `https://akp-fastapi-frontend.onrender.com` |
+| Authorized redirect URIs | `https://akp-fastapi-frontend.onrender.com/api/auth/google/callback` |
 
 Infrastructure is declared in `render.yaml`.
 
@@ -93,10 +93,14 @@ Infrastructure is declared in `render.yaml`.
 
 - Redis (or Docker)
 
-## Share a live demo (free public link)
+## Share a live demo (local tunnel)
 
-With the app already running locally (`pnpm docker:up`, API on `:4000`, web on `:3000`),
-you can publish a free HTTPS URL that recruiters can open in a browser:
+The hosted demo is on Render — see [Live demo (Render)](#live-demo-render) above:
+
+- **Web:** https://akp-fastapi-frontend.onrender.com
+- **API:** https://akp-fastapi-backend.onrender.com
+
+To share a temporary link from your own machine instead (`pnpm docker:up`, API on `:4000`, web on `:3000`):
 
 ```bash
 ./scripts/demo-tunnel.sh
@@ -106,7 +110,7 @@ The script prints a `https://….trycloudflare.com` link. Keep that terminal (an
 machine) running while people use the demo. Stopping the tunnel or sleeping the
 computer takes the link offline, and restarting creates a new URL.
 
-See `DEMO.md` for the current live link and seeded login credentials.
+Seeded logins are listed under [Live demo (Render)](#live-demo-render).
 
 ## Initial Setup
 

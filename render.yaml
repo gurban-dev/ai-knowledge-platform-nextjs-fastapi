@@ -16,7 +16,7 @@ services:
     ipAllowList: []
 
   - type: web
-    name: akp-api
+    name: akp-fastapi-backend
     runtime: node
     plan: free
     region: oregon
@@ -72,7 +72,7 @@ services:
         sync: false
 
   - type: web
-    name: akp-web
+    name: akp-fastapi-frontend
     runtime: node
     plan: free
     region: oregon
