@@ -72,7 +72,7 @@ services:
         sync: false
 
   - type: web
-    name: akp-fastapi-frontend
+    name: ai-knowledge-platform-web
     runtime: node
     plan: free
     region: oregon
