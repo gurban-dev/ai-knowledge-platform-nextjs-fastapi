@@ -77,6 +77,8 @@ See `MIGRATION_NOTES.md`.
 
 ## Share a live demo (free public link)
 
+**Current live URL:** [https://calculators-prepaid-around-gorgeous.trycloudflare.com](https://calculators-prepaid-around-gorgeous.trycloudflare.com)
+
 With the app already running locally (`pnpm docker:up`, API on `:4000`, web on `:3000`),
 you can publish a free HTTPS URL that recruiters can open in a browser:
 
@@ -88,7 +90,7 @@ The script prints a `https://….trycloudflare.com` link. Keep that terminal (an
 machine) running while people use the demo. Stopping the tunnel or sleeping the
 computer takes the link offline, and restarting creates a new URL.
 
-See `DEMO.md` for the current live link and seeded login credentials.
+See `DEMO.md` for seeded login credentials and Google OAuth console values for the current host.
 
 ## Initial Setup
 

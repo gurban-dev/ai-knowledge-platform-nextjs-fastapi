@@ -1,7 +1,7 @@
 # Live recruiter demo
 
 **Public URL (Cloudflare Quick Tunnel):**  
-https://red-launches-projectors-lid.trycloudflare.com
+https://calculators-prepaid-around-gorgeous.trycloudflare.com
 
 This is a free HTTPS tunnel to the app running on this machine (Next.js `:3000` → Fastify `:4000` → Postgres/Redis). Recruiters open the link in a browser — they do **not** install anything.
 
@@ -18,8 +18,8 @@ Email/password works over the public link immediately.
 
 Add these to the same Google OAuth client (Console → Credentials):
 
-- **Authorized JavaScript origin:** `https://red-launches-projectors-lid.trycloudflare.com`
-- **Authorized redirect URI:** `https://red-launches-projectors-lid.trycloudflare.com/api/auth/google/callback`
+- **Authorized JavaScript origin:** `https://calculators-prepaid-around-gorgeous.trycloudflare.com`
+- **Authorized redirect URI:** `https://calculators-prepaid-around-gorgeous.trycloudflare.com/api/auth/google/callback`
 
 (Quick tunnels get a **new** hostname each restart — update Console when the URL changes.)
 
