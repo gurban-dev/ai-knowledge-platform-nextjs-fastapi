@@ -43,6 +43,24 @@ monitoring, not a one-off demo.
 
 See `MIGRATION_NOTES.md`.
 
+## Live demo (Render)
+
+**Web:** https://akp-web-dennis.onrender.com  
+**API:** https://akp-api-dennis.onrender.com
+
+Hosted on Render’s free tier (web + API sleep after ~15 minutes idle; first request may take a minute to wake). The live demo runs the Node reference path (`apps/api-node` / `apps/web`) while the Python FastAPI cutover continues.
+
+Seeded logins: `owner@acme.test` / `Password123!` and `member@acme.test` / `Password123!`.
+
+For Google sign-in on this host, set these in Google Cloud Console (OAuth Web client):
+
+| Setting | Value |
+|---------|-------|
+| Authorized JavaScript origins | `https://akp-web-dennis.onrender.com` |
+| Authorized redirect URIs | `https://akp-web-dennis.onrender.com/api/auth/google/callback` |
+
+Infrastructure is declared in `render.yaml`.
+
 ---
 
 # Applications
@@ -77,8 +95,6 @@ See `MIGRATION_NOTES.md`.
 
 ## Share a live demo (free public link)
 
-**Current live URL:** [https://calculators-prepaid-around-gorgeous.trycloudflare.com](https://calculators-prepaid-around-gorgeous.trycloudflare.com)
-
 With the app already running locally (`pnpm docker:up`, API on `:4000`, web on `:3000`),
 you can publish a free HTTPS URL that recruiters can open in a browser:
 
@@ -90,7 +106,7 @@ The script prints a `https://….trycloudflare.com` link. Keep that terminal (an
 machine) running while people use the demo. Stopping the tunnel or sleeping the
 computer takes the link offline, and restarting creates a new URL.
 
-See `DEMO.md` for seeded login credentials and Google OAuth console values for the current host.
+See `DEMO.md` for the current live link and seeded login credentials.
 
 ## Initial Setup
 

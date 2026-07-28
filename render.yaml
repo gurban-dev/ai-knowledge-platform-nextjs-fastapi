@@ -1,0 +1,97 @@
+# Render Blueprint — free-tier demo stack (web + API/worker + Postgres + Redis)
+# https://render.com/docs/blueprint-spec
+#
+# Limits: free web services sleep after ~15m idle; free Postgres expires after 30 days;
+# background workers are not free, so the worker is co-located with the API.
+#
+# Node path (`apps/api-node`, `apps/worker-node`) is what the live demo runs while
+# the Python FastAPI cutover continues.
+
+services:
+  - type: keyvalue
+    name: akp-redis
+    plan: free
+    region: oregon
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+  - type: web
+    name: akp-api
+    runtime: node
+    plan: free
+    region: oregon
+    repo: https://github.com/gurban-dev/ai-knowledge-platform-nextjs-fastapi
+    branch: main
+    healthCheckPath: /health/live
+    buildCommand: bash scripts/render-build-api.sh
+    # Free tier has no pre-deploy command; migrate on boot before listen.
+    # Runtime must not call pnpm (reinstall OOMs on 512Mi).
+    startCommand: bash scripts/render-predeploy-api.sh && bash scripts/render-start-api.sh
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '20.11.0'
+      - key: LOG_LEVEL
+        value: info
+      - key: AI_FORCE_FAKE
+        value: 'true'
+      - key: STORAGE_BACKEND
+        value: local
+      - key: OTEL_ENABLED
+        value: 'false'
+      - key: SECURITY_REQUIRE_MFA
+        value: 'false'
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ENCRYPTION_ACTIVE_KEY_ID
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: akp-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: akp-redis
+          property: connectionString
+      # Provide at Blueprint apply: public https://…onrender.com URLs + ENCRYPTION_KEYS=prod:<base64-32-bytes>
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: WEB_PUBLIC_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ENCRYPTION_KEYS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+  - type: web
+    name: akp-web
+    runtime: node
+    plan: free
+    region: oregon
+    repo: https://github.com/gurban-dev/ai-knowledge-platform-nextjs-fastapi
+    branch: main
+    healthCheckPath: /
+    buildCommand: bash scripts/render-build-web.sh
+    startCommand: bash scripts/render-start-web.sh
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '20.11.0'
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+
+databases:
+  - name: akp-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: '16'
+    ipAllowList: []
