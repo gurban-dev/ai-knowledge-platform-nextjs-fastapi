@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { API_URL } from '@/lib/api';
 import { setAuthCookies } from '@/lib/auth-cookies';
 import { googlePopupBridgeHtml } from '@/lib/google-auth-popup';
+import { getPublicOrigin } from '@/lib/request-origin';
 
 const STATE_COOKIE = 'akp_oauth_state';
 const RETURN_COOKIE = 'akp_oauth_return';
@@ -38,17 +39,22 @@ function popupResponse(origin: string, message: Parameters<typeof googlePopupBri
   });
 }
 
+function cookieSecure(origin: string): boolean {
+  return origin.startsWith('https://') || process.env.NODE_ENV === 'production';
+}
+
 /**
  * Google redirects here with `?code&state`. In popup mode we set session cookies
  * then notify the opener via postMessage and close the window. In full-page mode
  * we redirect into the app as before.
  */
 export async function GET(request: Request): Promise<NextResponse> {
+  const origin = getPublicOrigin(request);
   const url = new URL(request.url);
-  const origin = url.origin;
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
   const oauthError = url.searchParams.get('error');
+  const secure = cookieSecure(origin);
 
   const cookieStore = cookies();
   const expectedState = cookieStore.get(STATE_COOKIE)?.value;
@@ -97,7 +103,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       response.cookies.set(MFA_COOKIE, mfaToken, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure,
         path: '/',
         maxAge: 60 * 5,
       });
@@ -109,7 +115,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     response.cookies.set(MFA_COOKIE, mfaToken, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       path: '/',
       maxAge: 60 * 5,
     });

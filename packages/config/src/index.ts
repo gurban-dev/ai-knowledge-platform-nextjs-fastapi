@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({
   path: path.resolve(__dirname, '../../../.env'),
+  // Root .env is the source of truth; do not let a stale apps/*/ .env or
+  // inherited shell vars permanently shadow WEB_PUBLIC_URL / CORS_ORIGINS.
+  override: true,
 });
 
 import { envSchema, type Env } from './env.js';

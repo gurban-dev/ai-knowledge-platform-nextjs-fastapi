@@ -1,0 +1,22 @@
+# Keep Node Dockerfiles for reference during migration cutover.
+# Active images are Dockerfile.api / Dockerfile.worker (Python).
+FROM node:20.11-alpine AS base
+RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api-node/package.json apps/api-node/
+COPY packages ./packages
+RUN pnpm install --frozen-lockfile
+
+FROM deps AS build
+COPY . .
+RUN pnpm db:generate && pnpm --filter @akp/api-node... build
+
+FROM node:20.11-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app /app
+EXPOSE 4000
+CMD ["pnpm", "--filter", "@akp/api-node", "start"]

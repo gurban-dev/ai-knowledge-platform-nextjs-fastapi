@@ -12,10 +12,11 @@ concurrency:
 
 env:
   NODE_VERSION: 24
+  PYTHON_VERSION: "3.12"
 
 jobs:
-  quality:
-    name: Lint · Typecheck · Unit
+  quality-node:
+    name: Node · Lint · Typecheck · Unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,8 +51,41 @@ jobs:
       - name: Build packages and apps
         run: pnpm build
 
-  integration:
-    name: Integration tests
+  quality-python:
+    name: Python · Ruff · Mypy · Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.33"
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install workspace
+        run: uv sync --all-packages
+
+      - name: Ruff
+        run: uv run ruff check apps packages
+
+      - name: Mypy
+        run: uv run mypy
+
+      - name: Pytest (unit)
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://akp:akp_dev_password@localhost:5432/akp?schema=public
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: test-access-secret-000000000000000000000
+          JWT_REFRESH_SECRET: test-refresh-secret-11111111111111111111
+        run: uv run pytest -q
+
+  integration-node:
+    name: Node integration (contract reference)
     runs-on: ubuntu-latest
     services:
       postgres:

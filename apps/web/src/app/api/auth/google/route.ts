@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { API_URL } from '@/lib/api';
 import { googlePopupBridgeHtml } from '@/lib/google-auth-popup';
+import { getPublicOrigin } from '@/lib/request-origin';
 
 const STATE_COOKIE = 'akp_oauth_state';
 const RETURN_COOKIE = 'akp_oauth_return';
@@ -39,12 +40,12 @@ function cookieOptions(secure: boolean, maxAge = 60 * 10) {
  * chooser opens in a centered window instead of navigating the main page away.
  */
 export async function GET(request: Request): Promise<NextResponse> {
+  const origin = getPublicOrigin(request);
   const requestUrl = new URL(request.url);
-  const origin = requestUrl.origin;
   const returnTo = safeReturnTo(requestUrl.searchParams.get('returnTo'), origin);
   const popup = requestUrl.searchParams.get('popup') === '1';
   const redirectUri = `${origin}/api/auth/google/callback`;
-  const secure = process.env.NODE_ENV === 'production';
+  const secure = origin.startsWith('https://');
 
   const res = await fetch(
     `${API_URL}/v1/auth/google/start?redirectUri=${encodeURIComponent(redirectUri)}`,

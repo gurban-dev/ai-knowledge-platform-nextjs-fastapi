@@ -8,7 +8,7 @@ import { isGoogleAuthMessage } from '@/lib/google-auth-popup';
 const ERROR_COPY = {
   google: 'Google sign-in could not be completed. Please try again.',
   google_unavailable:
-    'Google sign-in is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the server .env, then restart the API.',
+    'Google sign-in could not start. Check that this site’s callback URL is allowed in Google Cloud and in CORS_ORIGINS / WEB_PUBLIC_URL, then restart the API.',
   popup_blocked:
     'Your browser blocked the Google sign-in window. Use “Continue in this tab” below, or allow popups for this site.',
   mfa_required: 'Additional verification is required.',
@@ -125,11 +125,15 @@ export function GoogleSignInButton({
     pollRef.current = window.setInterval(() => {
       if (popupRef.current?.closed) {
         cleanup();
-        if (!completedRef.current) {
-          setOpen(false);
-          setPhase('loading');
-          setError(ERROR_COPY.cancelled);
-        }
+        // Prefer a real postMessage error over a false "cancelled" when the
+        // bridge closes the popup immediately after notifying the opener.
+        window.setTimeout(() => {
+          if (!completedRef.current) {
+            setOpen(false);
+            setPhase('loading');
+            setError((current) => current ?? ERROR_COPY.cancelled);
+          }
+        }, 250);
       }
     }, 400);
   };

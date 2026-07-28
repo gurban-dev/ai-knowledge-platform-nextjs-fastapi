@@ -120,6 +120,15 @@ describe.skipIf(!INTEGRATION_ENABLED)('Google sign-in (integration)', () => {
     expect(wrongPath.statusCode).toBe(422);
   });
 
+  it('allows Google callbacks for every configured CORS web origin', async () => {
+    // Default harness CORS includes localhost:3000 via env defaults; WEB_PUBLIC_URL matches.
+    const res = await harness.app.inject({
+      method: 'GET',
+      url: `/v1/auth/google/start?redirectUri=${encodeURIComponent(REDIRECT_URI)}`,
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
   it('provisions a new org + owner on first Google sign-up, then signs the same user back in', async () => {
     const state1 = await startGoogle();
     const first = await exchange('auth-code-1', state1);

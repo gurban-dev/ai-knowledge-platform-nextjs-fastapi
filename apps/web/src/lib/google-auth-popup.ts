@@ -42,10 +42,11 @@ export function googlePopupBridgeHtml(origin: string, message: GoogleAuthMessage
           window.opener.postMessage(message, ${JSON.stringify(origin)});
         }
       } catch (e) {}
-      window.close();
+      // Delay close so the opener can handle postMessage before the window dies.
       setTimeout(function () {
+        window.close();
         document.body.innerHTML = '<p>You can close this window and return to the app.</p>';
-      }, 400);
+      }, 100);
     })();
   </script>
 </body>

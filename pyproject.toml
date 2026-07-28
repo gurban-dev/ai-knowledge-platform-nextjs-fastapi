@@ -1,0 +1,70 @@
+[project]
+name = "akp"
+version = "0.1.0"
+description = "AI Knowledge Automation Platform — Python workspace (FastAPI API + arq workers)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "SEE LICENSE IN LICENSE" }
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+  "packages/akp-core",
+  "packages/akp-config",
+  "packages/akp-db",
+  "packages/akp-observability",
+  "apps/api",
+  "apps/worker",
+]
+
+[tool.uv.sources]
+akp-core = { workspace = true }
+akp-config = { workspace = true }
+akp-db = { workspace = true }
+akp-observability = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "ruff>=0.9.0",
+  "mypy>=1.14.0",
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.25.0",
+  "httpx>=0.28.0",
+  "types-redis>=4.6.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["apps", "packages"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101"]
+"packages/akp-db/src/akp_db/models.py" = ["E501"]
+"apps/api/src/akp_api/services/auth.py" = ["E501"]
+"apps/api/src/akp_api/routers/auth.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+mypy_path = "packages/akp-core/src:packages/akp-config/src:packages/akp-db/src:packages/akp-observability/src:apps/api/src:apps/worker/src"
+packages = ["akp_core", "akp_config", "akp_db", "akp_observability", "akp_api", "akp_worker"]
+namespace_packages = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["arq.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["apps/api/tests", "apps/worker/tests", "packages"]
+filterwarnings = ["ignore::DeprecationWarning"]

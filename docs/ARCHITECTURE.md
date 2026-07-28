@@ -17,13 +17,18 @@ conventions every contributor is expected to follow.
 
 ## High-level topology
 
+> **Migration in progress:** `apps/api` and `apps/worker` are being rebuilt in Python
+> (FastAPI + arq). The Next.js web app is unchanged and continues to call the same HTTP
+> contract. See `MIGRATION_NOTES.md`. Node reference implementations live at
+> `apps/api-node` and `apps/worker-node` until cutover.
+
 ```
           ┌───────────┐        ┌──────────────────┐
-Browser ─▶ │  Next.js  │ ─────▶ │   Fastify  API   │ ─┬─▶ PostgreSQL + pgvector (+ RLS)
+Browser ─▶ │  Next.js  │ ─────▶ │  FastAPI  API    │ ─┬─▶ PostgreSQL + pgvector (+ RLS)
           │  (web)    │  REST  │  (apps/api)      │  │
-          └───────────┘  /SSE  └──────────────────┘  ├─▶ Redis (cache, rate limit, BullMQ)
+          └───────────┘  /SSE  └──────────────────┘  ├─▶ Redis (cache, rate limit, arq)
                                         │             │
-AI agents ─── MCP / API key ────────────┤             └─▶ BullMQ workers (apps/worker)
+AI agents ─── MCP / API key ────────────┤             └─▶ arq workers (apps/worker)
                                         │                     │
                                    apps/mcp                   ├─ ingest / embed
                                                               ├─ webhook delivery
@@ -32,7 +37,21 @@ AI agents ─── MCP / API key ────────────┤       
                                               Local FS or GCS object storage
 ```
 
+### Background jobs: why arq (not Celery)
+
+BullMQ is Redis-backed and async-friendly. **arq** was chosen over Celery because:
+
+1. **Async-native** — workers use `async def` end-to-end, matching FastAPI + async SQLAlchemy.
+2. **Redis-first** — same broker already required for rate limits/cache; no AMQP detour.
+3. **Closer to BullMQ** — job retries, deferred execution, and named queues map cleanly.
+4. **Lower ops surface** for three queues (ingest, webhook, maintenance).
+
+Celery would be reconsidered only if we needed multi-broker topologies or an existing
+Celery operations footprint.
+
 ## Packages
+
+### TypeScript (web, MCP, Node reference)
 
 - `@akp/core` — errors, Result, ids, RBAC, scopes, redaction, encryption, PII, prompt-guard
 - `@akp/config` — Zod-validated env → typed `AppConfig`
@@ -41,13 +60,26 @@ AI agents ─── MCP / API key ────────────┤       
 - `@akp/ai` — providers, registry/failover, chunking, RRF fusion, grounding, prompts, pricing
 - `@akp/storage` — local + GCS object storage adapters
 
+### Python (API + worker)
+
+- `akp-core` — error codes/envelope types, prefixed IDs (contract-compatible with `@akp/core`)
+- `akp-config` — Pydantic Settings env validation (same variables as `@akp/config`)
+- `akp-db` — SQLAlchemy 2.0 async + Alembic (+ pgvector)
+- `akp-observability` — structlog (+ metrics in later phases)
+- Managed with **uv** workspaces (`pyproject.toml` at repo root)
+
 ## API layering
 
 ```
-routes (HTTP + Zod) → services (use-cases) → repositories (Prisma only)
+routes (HTTP + Pydantic) → services (use-cases) → repositories (SQLAlchemy only)
 ```
 
-Composition root: `apps/api/src/container.ts`.
+Composition root: FastAPI lifespan / `app.state.container` (Python). Node reference:
+`apps/api-node/src/container.ts`.
+
+> During migration, treat `apps/api-node` Fastify route modules + Zod schemas as the
+> HTTP contract source of truth. Python must match paths, bodies, status codes, and the
+> `{ error: { code, message, statusCode, details?, requestId } }` envelope.
 
 ## AuthN / AuthZ
 

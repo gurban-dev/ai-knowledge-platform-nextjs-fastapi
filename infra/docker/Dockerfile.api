@@ -1,20 +1,28 @@
-FROM node:20.11-alpine AS base
-RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+# syntax=docker/dockerfile:1.7
+FROM python:3.12-slim AS base
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:0.11.33 /uv /usr/local/bin/uv
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/api/package.json apps/api/
+COPY pyproject.toml ./
+COPY uv.lock* ./
 COPY packages ./packages
-RUN pnpm install --frozen-lockfile
+COPY apps/api ./apps/api
+COPY apps/worker/pyproject.toml ./apps/worker/pyproject.toml
+RUN mkdir -p apps/worker/src/akp_worker && touch apps/worker/src/akp_worker/__init__.py
+RUN if [ -f uv.lock ]; then uv sync --frozen --no-dev --package akp-api; else uv sync --no-dev --package akp-api; fi
 
-FROM deps AS build
-COPY . .
-RUN pnpm db:generate && pnpm --filter @akp/api... build
-
-FROM node:20.11-alpine AS runtime
+FROM base AS runtime
+RUN useradd --create-home --uid 10001 akp
 WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=build /app /app
+COPY --from=deps /app /app
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app/apps/api/src:/app/packages/akp-core/src:/app/packages/akp-config/src:/app/packages/akp-db/src:/app/packages/akp-observability/src"
+USER akp
 EXPOSE 4000
-CMD ["pnpm", "--filter", "@akp/api", "start"]
+CMD ["uvicorn", "akp_api.main:app", "--host", "0.0.0.0", "--port", "4000", "--proxy-headers"]

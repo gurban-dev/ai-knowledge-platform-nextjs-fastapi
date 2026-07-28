@@ -3,6 +3,19 @@ node_modules/
 .pnp
 .pnp.js
 
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+uv.lock.bak
+
 # Build output
 dist/
 build/
@@ -55,3 +68,4 @@ packages/db/prisma/seed.js
 
 # Misc
 __shell_alive__.marker
+.tools/

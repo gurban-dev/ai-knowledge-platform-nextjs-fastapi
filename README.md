@@ -28,36 +28,20 @@ monitoring, not a one-off demo.
 
 ### Built with
 
-TypeScript monorepo: **Next.js** (web), **Fastify** (API), **Postgres + pgvector**
-(data/search), **Redis + BullMQ** (background jobs).
-
----
-
-## For engineers
-
-A production-oriented multi-tenant B2B SaaS platform that connects internal
-knowledge to AI, with observability into retrieval quality, accuracy,
-hallucinations, latency, token usage, and cost.
+- **Web (unchanged):** Next.js
+- **API / Worker (migrating):** FastAPI + arq (Python); Node reference at `apps/api-node`, `apps/worker-node`
+- **Data:** PostgreSQL + pgvector, Redis
 
 ## Status
 
 | Phase | Scope | State |
 |------:|-------|:-----:|
-| 0 | Monorepo foundation, shared packages, CI, Docker | ✅ Done |
-| 1 | Relational + vector data model (Prisma + pgvector) | ✅ Done |
-| 2 | API core: Auth (email + Google OAuth), Orgs, RBAC, Audit, MFA, API keys | ✅ Done |
-| 3 | Web app (Next.js): auth, chat, documents, usage | ✅ Done |
-| 4 | Ingestion workers (BullMQ), chunking, embeddings | ✅ Done |
-| 5 | Hybrid retrieval, reranking, chat, citations, grounding | ✅ Done |
-| 6 | Evaluations, usage/cost, budgets, quality signals | ✅ Done |
-| 7 | MCP server, webhooks, teams, document ACLs | ✅ Done |
-| 8 | Infrastructure: Dockerfiles, Kubernetes, Terraform skeleton, compliance documentation | ✅ Done |
+| 0–8 | Original TypeScript platform | ✅ Done |
+| **P0** | Python foundation (uv, FastAPI, arq, compose, CI) | ✅ Done |
+| **P1** | SQLAlchemy + Alembic = Prisma schema parity | ✅ Done |
+| P2–P8 | FastAPI/arq feature parity + infra cutover | Pending |
 
-For additional documentation, see:
-
-- `docs/ROADMAP.md`
-- `docs/ARCHITECTURE.md`
-- `docs/COMPLIANCE.md`
+See `MIGRATION_NOTES.md`.
 
 ---
 
@@ -69,7 +53,7 @@ For additional documentation, see:
 
 | API | `apps/api` | **4000** | REST API and business logic |
 
-| Worker | `apps/worker` | — | BullMQ background workers |
+| Worker | `apps/worker` | — | arq background workers |
 
 | Web | `apps/web` | **3000** | Next.js frontend |
 
@@ -90,6 +74,21 @@ For additional documentation, see:
 - PostgreSQL (or Docker)
 
 - Redis (or Docker)
+
+## Share a live demo (free public link)
+
+With the app already running locally (`pnpm docker:up`, API on `:4000`, web on `:3000`),
+you can publish a free HTTPS URL that recruiters can open in a browser:
+
+```bash
+./scripts/demo-tunnel.sh
+```
+
+The script prints a `https://….trycloudflare.com` link. Keep that terminal (and your
+machine) running while people use the demo. Stopping the tunnel or sleeping the
+computer takes the link offline, and restarting creates a new URL.
+
+See `DEMO.md` for the current live link and seeded login credentials.
 
 ## Initial Setup
 
@@ -210,15 +209,12 @@ Ctrl+C
 If you only need to work on a single component, each application can be started independently.
 
 | Service | Command |
-
 |---------|---------|
-
-| API | `pnpm --filter @akp/api dev` |
-
-| Worker | `pnpm --filter @akp/worker dev` |
-
+| API (Python) | `pnpm py:api` |
+| Worker (Python) | `pnpm py:worker` |
+| API (Node reference) | `pnpm --filter @akp/api-node dev` |
+| Worker (Node reference) | `pnpm --filter @akp/worker-node dev` |
 | Web | `pnpm --filter @akp/web dev` |
-
 | MCP *(optional)* | `pnpm --filter @akp/mcp dev` |
 
 ---

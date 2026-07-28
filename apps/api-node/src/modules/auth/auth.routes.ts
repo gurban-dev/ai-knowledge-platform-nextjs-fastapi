@@ -127,13 +127,21 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   );
 
   /**
-   * Only the web app's exact Google callback URL is allowed. Google Console also
-   * enforces registered redirect URIs; this is defense in depth.
+   * Allow the configured web public URL and every CORS origin's Google callback.
+   * Google Console still enforces registered redirect URIs; this is defense in depth
+   * while supporting local + preview/tunnel frontends.
    */
   const assertTrustedRedirect = (redirectUri: string): void => {
-    const base = fastify.container.config.web.publicUrl.replace(/\/$/, '');
-    const allowed = `${base}${GOOGLE_CALLBACK_PATH}`;
-    if (redirectUri !== allowed) {
+    const allowed = new Set<string>();
+    const addOrigin = (raw: string) => {
+      const base = raw.replace(/\/$/, '');
+      if (base) allowed.add(`${base}${GOOGLE_CALLBACK_PATH}`);
+    };
+    addOrigin(fastify.container.config.web.publicUrl);
+    for (const origin of fastify.container.config.server.corsOrigins) {
+      addOrigin(origin);
+    }
+    if (!allowed.has(redirectUri)) {
       throw new ValidationError('redirectUri is not an allowed callback URL');
     }
   };

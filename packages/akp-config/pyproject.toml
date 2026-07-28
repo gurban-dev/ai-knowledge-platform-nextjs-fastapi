@@ -1,0 +1,16 @@
+[project]
+name = "akp-config"
+version = "0.1.0"
+description = "Pydantic-validated environment configuration"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.10.0",
+  "pydantic-settings>=2.7.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/akp_config"]
