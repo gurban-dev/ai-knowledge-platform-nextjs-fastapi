@@ -45,8 +45,8 @@ See `MIGRATION_NOTES.md`.
 
 ## Live demo (Render)
 
-**Web:** https://ai-knowledge-platform-web.onrender.com  
-**API:** https://ai-knowledge-platform-backend.onrender.com
+**Web:** https://ai-knowledge-platform-app.onrender.com  
+**API:** https://ai-knowledge-platform-api.onrender.com
 
 Hosted on Render’s free tier (web + API sleep after ~15 minutes idle; first request may take a minute to wake). The live demo runs the Node reference path (`apps/api-node` / `apps/web`) while the Python FastAPI cutover continues.
 
@@ -56,8 +56,8 @@ For Google sign-in on this host, set these in Google Cloud Console (OAuth Web cl
 
 | Setting | Value |
 |---------|-------|
-| Authorized JavaScript origins | `https://ai-knowledge-platform-web.onrender.com` |
-| Authorized redirect URIs | `https://ai-knowledge-platform-web.onrender.com/api/auth/google/callback` |
+| Authorized JavaScript origins | `https://ai-knowledge-platform-app.onrender.com` |
+| Authorized redirect URIs | `https://ai-knowledge-platform-app.onrender.com/api/auth/google/callback` |
 
 Infrastructure is declared in `render.yaml`.
 
@@ -97,8 +97,8 @@ Infrastructure is declared in `render.yaml`.
 
 The hosted demo is on Render — see [Live demo (Render)](#live-demo-render) above:
 
-- **Web:** https://ai-knowledge-platform-web.onrender.com
-- **API:** https://ai-knowledge-platform-backend.onrender.com
+- **Web:** https://ai-knowledge-platform-app.onrender.com
+- **API:** https://ai-knowledge-platform-api.onrender.com
 
 To share a temporary link from your own machine instead (`pnpm docker:up`, API on `:4000`, web on `:3000`):
 
